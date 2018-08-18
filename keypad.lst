@@ -1,0 +1,289 @@
+C51 COMPILER V9.01   KEYPAD                                                                08/12/2018 22:02:29 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE KEYPAD
+OBJECT MODULE PLACED IN keypad.obj
+COMPILER INVOKED BY: D:\keil4\C51\BIN\C51.EXE code\my\keypad.c BROWSE INCDIR(.\code;.\code\my) DEBUG OBJECTEXTEND PRINT(
+                    -.\keypad.lst) OBJECT(keypad.obj)
+
+line level    source
+
+   1          #include"keypad.h"
+   2          
+   3          uchar  g_uiCurrKey;            //当前按键值
+   4          uchar  g_uiLastKey;            //上次按键值
+   5          uchar  g_uiKeyScanCount;       //按键扫描计数，作用：消抖动
+   6          
+   7          uchar  g_uiPreKeyValue;        // 上一次的有效按键值
+   8          uchar  g_uiKeyDown;            //键被按下，返回的键值。       作用：单次按键，单次返
+             -回有效键值；按住不放，也只返回被按下的一个键值
+   9          uchar  g_uiKeyRelease;         //键被释放后，返回的键值。     作用：只有按下的按键�
+             -�释放后，才返回按下的键值
+  10          uchar  g_uiKeyContinue;        //键连续按键，重复返回的键值。 作用：只要按住不放，
+             -就会重复地返回相同键值
+  11          
+  12          void shezhi(uchar a)
+  13          {
+  14   1          if(setshijian==1||setnaozhong==1)
+  15   1          {
+  16   2              zset[flashwei]=a;
+  17   2              flashwei--;
+  18   2              if(flashwei==-1)
+  19   2                  flashwei=0;
+  20   2              flashtime=300;
+  21   2          }
+  22   1      }
+  23          
+  24          void Backspace()
+  25          {
+  26   1              if(setshijian==1||setnaozhong==1)
+  27   1          {
+  28   2              flashwei++;
+  29   2              if(flashwei>5)
+  30   2                  flashwei=5;
+  31   2              flashtime=300;
+  32   2          }
+  33   1      }
+  34          
+  35          void qingchu()
+  36          {
+  37   1              zset[0]=0;
+  38   1              zset[1]=0;
+  39   1              zset[2]=0;
+  40   1              zset[3]=0;
+  41   1              zset[4]=0;
+  42   1              zset[5]=0;
+  43   1              flashwei=5;
+  44   1      }
+  45          
+  46          
+  47          void querenjian(Time * nao,Time * shij,Time *she)
+  48          {
+  49   1      
+  50   1              if(setnaozhong==1)
+  51   1              {
+C51 COMPILER V9.01   KEYPAD                                                                08/12/2018 22:02:29 PAGE 2   
+
+  52   2                      nao->miao=she->miao;
+  53   2                      nao->fen=she->fen;
+  54   2                      nao->shi=she->shi;
+  55   2              }
+  56   1              else if(setshijian==1)
+  57   1              {
+  58   2                      shij->miao=she->miao;
+  59   2                      shij->fen=she->fen;
+  60   2                      shij->shi=she->shi;
+  61   2              }
+  62   1      }
+  63          
+  64          void Int_Key_Scan(void)
+  65          {
+  66   1          static unsigned short LastReadKey;        //上次从IO口读取的键值 ,注意是静态变量
+  67   1          unsigned short CurrReadKey;               //当前从IO口读取的键值
+  68   1      
+  69   1      //---------------------- 需要修改的地方 --------------------------------------//
+  70   1          unsigned short KeyRow,KeyColumn;
+  71   1      
+  72   1          //读取按键的行数
+  73   1          P1 = 0xf0;
+  74   1          KeyRow = P1;
+  75   1      
+  76   1          //读取按键的列数
+  77   1          P1 = 0x0f;
+  78   1          KeyColumn = P1;
+  79   1      
+  80   1          P1=0xff;
+  81   1          //读取行列数，就是当前键值了
+  82   1          CurrReadKey = KeyRow|KeyColumn;         //获取当前的键值      
+  83   1          //P3=CurrReadKey;
+  84   1      //-----------------------------------------------------------------------//
+  85   1      
+  86   1          if(CurrReadKey == LastReadKey)            //如果当前读取的键值与上次从IO口读取的键�
+             -�相同
+  87   1          {
+  88   2              if(1/*g_uiKeyScanCount >= KEYDEBOUNCE*/)   //首先判断是否大于等于debounce的设定值(�
+             -�是，是否大于等于设定的采样次数)
+  89   2              {
+  90   3                  //按住不放,多次响应
+  91   3                  g_uiCurrKey = CurrReadKey;                //如果是,将当前的读取值判定为有效按�
+             -��值(如果是，在采样周期中，都是这个值，则判定为有效按键值)
+  92   3                  g_uiKeyContinue = g_uiCurrKey ;           //长按，多次响应 按键值
+  93   3                  //按住不放只响应一次
+  94   3                  if(g_uiPreKeyValue == g_uiCurrKey)
+  95   3                  {
+  96   4                      g_uiKeyDown = 0xff;                    //没有键值
+  97   4                  }
+  98   3                  else
+  99   3                  {
+ 100   4                      g_uiKeyDown = g_uiCurrKey;             //如果不同，按键有效,(就是第一次有�
+             -�值时)
+ 101   4                  }
+ 102   3      
+ 103   3                  //按键释放时，按键值才有效     
+ 104   3                  if(g_uiCurrKey == 0xff)                  //当有效按键值从非0到0的状态时(即是，
+             -从有按键到无按键，表示已经释放了)，表示之前按键已经释放了
+ 105   3                  {
+ 106   4                      g_uiKeyRelease = g_uiPreKeyValue;
+ 107   4                  }
+ 108   3      
+C51 COMPILER V9.01   KEYPAD                                                                08/12/2018 22:02:29 PAGE 3   
+
+ 109   3                  g_uiPreKeyValue = g_uiCurrKey;               //记录上次有效按键值
+ 110   3              }
+ 111   2              else                                       //如果否，则debounce加一(如果否，则继续�
+             -�样键值)
+ 112   2              {
+ 113   3                  g_uiKeyScanCount++;
+ 114   3              }
+ 115   2          }
+ 116   1          else                                          //如果当前读取的键值与上次从IO口读取的�
+             -��值不同，说明按键已经变化
+ 117   1          {
+ 118   2              g_uiKeyDown = 0xff;                       //放开按键后第一次进入扫描程序，清零g_u
+             -iKeyDown.作用：消除一个BUG（你猜BUG是什么？）
+ 119   2              g_uiKeyScanCount = 0;                     //清零之前的按键的debounce计数
+ 120   2              LastReadKey = CurrReadKey;                //将当前读取的键值记录为上次读取的按键
+             -值
+ 121   2          }   
+ 122   1      }
+ 123          
+ 124          void keypad(void)
+ 125          {
+ 126   1          
+ 127   1              //第一种：KeyDown的使
+ 128   1              //单按时和长按时，都只返回一次有效键值（无需等到按键释放，就可以返
+             -回有效键值）
+ 129   1              switch(g_uiKeyDown)
+ 130   1              {
+ 131   2                  case 0xEE://7
+ 132   2                             {
+ 133   3                                      shezhi(7);
+ 134   3                             }
+ 135   2                              break;
+ 136   2      
+ 137   2                  case 0xED://8
+ 138   2                              {
+ 139   3                                      shezhi(8);
+ 140   3                             }
+ 141   2                              
+ 142   2                              break;
+ 143   2      
+ 144   2                  case 0xEB://9
+ 145   2                               {
+ 146   3                                      shezhi(9);
+ 147   3                             }
+ 148   2                              
+ 149   2                              break;
+ 150   2      
+ 151   2                  case 0xE7://闹钟开关
+ 152   2                  {
+ 153   3                      if(naozhongflag==1)naozhongflag=0;
+ 154   3                      else if(naozhongflag==0)naozhongflag=1;
+ 155   3                  }
+ 156   2                              break;
+ 157   2      
+ 158   2                  case 0xDE://4
+ 159   2                              {
+ 160   3                                      shezhi(4);
+ 161   3                             }
+ 162   2                              break;
+ 163   2      
+ 164   2                  case 0xDD://5
+ 165   2                              {
+C51 COMPILER V9.01   KEYPAD                                                                08/12/2018 22:02:29 PAGE 4   
+
+ 166   3                                      shezhi(5);
+ 167   3                             }
+ 168   2                              break;
+ 169   2      
+ 170   2                  case 0xDB://6
+ 171   2                              {
+ 172   3                                      shezhi(6);
+ 173   3                             }
+ 174   2                              break;
+ 175   2      
+ 176   2                  case 0xD7://时间设置
+ 177   2                  {
+ 178   3                      flashwei=5;
+ 179   3                      zhuancun(ptime,pzset);
+ 180   3                      setshijian=1;
+ 181   3                      flash=1;
+ 182   3                  }
+ 183   2                              break;   
+ 184   2      
+ 185   2                  case 0xBE://1
+ 186   2                             {
+ 187   3                                      shezhi(1);
+ 188   3                             }
+ 189   2                             break;
+ 190   2      
+ 191   2                  case 0xBD://2
+ 192   2                             {
+ 193   3                                      shezhi(2);
+ 194   3                             }
+ 195   2                             break;
+ 196   2      
+ 197   2                  case 0xBB://3
+ 198   2                              {
+ 199   3                                      shezhi(3);
+ 200   3                             }
+ 201   2                             break;
+ 202   2      
+ 203   2                  case 0xB7://闹钟设置
+ 204   2                  {
+ 205   3                      flashwei=5;
+ 206   3                      zhuancun(pnaotime,pzset);
+ 207   3                      setnaozhong=1;
+ 208   3                      flash=1;
+ 209   3                   
+ 210   3                  }
+ 211   2                             break; 
+ 212   2      
+ 213   2                  case 0x7E://确认    储存设置，退出设置
+ 214   2                  {
+ 215   3                      nicun(psettime,pzset);
+ 216   3                      querenjian(pnaotime,ptime,psettime);
+ 217   3                      setnaozhong=0;
+ 218   3                      setshijian=0;
+ 219   3                      flash=0;
+ 220   3                      flashwei=0;
+ 221   3                  }
+ 222   2                             break;
+ 223   2      
+ 224   2                  case 0x7D://0
+ 225   2                              {
+ 226   3                                      shezhi(0);
+ 227   3                             }
+C51 COMPILER V9.01   KEYPAD                                                                08/12/2018 22:02:29 PAGE 5   
+
+ 228   2                             break;
+ 229   2      
+ 230   2                  case 0x7B://清除
+ 231   2                                      qingchu();
+ 232   2                              break;
+ 233   2      
+ 234   2                  case 0x77://退格
+ 235   2                                      Backspace();
+ 236   2                              break;        
+ 237   2      
+ 238   2                  case 0xFF:
+ 239   2                              //没有按键程序
+ 240   2                              //...
+ 241   2                              break;
+ 242   2              }
+ 243   1      }
+ 244          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    539    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      9       9
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

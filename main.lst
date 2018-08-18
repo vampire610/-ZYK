@@ -1,0 +1,70 @@
+C51 COMPILER V9.01   MAIN                                                                  08/12/2018 22:02:28 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.obj
+COMPILER INVOKED BY: D:\keil4\C51\BIN\C51.EXE code\main.c BROWSE INCDIR(.\code;.\code\my) DEBUG OBJECTEXTEND PRINT(.\mai
+                    -n.lst) OBJECT(main.obj)
+
+line level    source
+
+   1          #include"main.h"
+   2          
+   3          
+   4          sbit naoling=P2^7;
+   5          
+   6          
+   7          void main()
+   8          {
+   9   1              ZD();
+  10   1              time.shi=12;   //初始时间
+  11   1              time.fen=00;
+  12   1              time.miao=00;
+  13   1              naotime.shi=12;
+  14   1              naotime.fen=00;
+  15   1              naotime.miao=03;
+  16   1      
+  17   1          
+  18   1              while(1)
+  19   1              {
+  20   2              Int_Key_Scan();
+  21   2              keypad();
+  22   2                      jinwei();
+  23   2              if(setshijian== 1||setnaozhong==1)
+  24   2              {
+  25   3                      nicunshuzu(pzset,pset);
+  26   3                  display_flash(pset);
+  27   3                  display(pset);
+  28   3              }
+  29   2              else
+  30   2                      {
+  31   3                  zhuancun(ptime,pduan);
+  32   3                  display(pduan);
+  33   3              }
+  34   2              if(time.shi==naotime.shi&&time.fen==naotime.fen&&time.miao==naotime.miao&&naozhongflag==1)
+  35   2              {
+  36   3                      naoling=0;
+  37   3                      P3=0x00;
+  38   3              }
+  39   2              else if(s==999)
+  40   2              {
+  41   3                      naoling=1;
+  42   3              }
+  43   2              }
+  44   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    144    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+C51 COMPILER V9.01   MAIN                                                                  08/12/2018 22:02:28 PAGE 2   
+
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

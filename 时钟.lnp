@@ -1,0 +1,8 @@
+"STARTUP.obj",
+"main.obj",
+"interrupt.obj",
+"calculate.obj",
+"display.obj",
+"keypad.obj" 
+TO " ±÷”" 
+RAMSIZE(256) 
